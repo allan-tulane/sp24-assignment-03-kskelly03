@@ -3,27 +3,66 @@ from collections import Counter
 
 ####### Problem 3 #######
 
-test_cases = [('book', 'back'), ('kookaburra', 'kookybird'), ('elephant', 'relevant'), ('AAAGAATTCA', 'AAATCA')]
-alignments = [('b--ook', 'bac--k'), ('kook-ab-urr-a', 'kooky-bi-r-d-'), ('relev--ant','-ele-phant'), ('AAAGAATTCA', 'AAA---T-CA')]
+test_cases = [('book', 'back'), ('kookaburra', 'kookybird'),
+              ('elephant', 'relevant'), ('AAAGAATTCA', 'AAATCA')]
+alignments = [('b--ook', 'bac--k'), ('kook-ab-urr-a', 'kooky-bi-r-d-'),
+              ('relev--ant', '-ele-phant'), ('AAAGAATTCA', 'AAA---T-CA')]
+
 
 def MED(S, T):
-    # TO DO - modify to account for insertions, deletions and substitutions
-    if (S == ""):
-        return(len(T))
-    elif (T == ""):
-        return(len(S))
+  # TO DO - modify to account for insertions, deletions and substitutions
+  if (S == ""):
+    return (len(T))
+  elif (T == ""):
+    return (len(S))
+  else:
+    if (S[0] == T[0]):
+      return (MED(S[1:], T[1:]))
     else:
-        if (S[0] == T[0]):
-            return(MED(S[1:], T[1:]))
-        else:
-            return(1 + min(MED(S, T[1:]), MED(S[1:], T)))
+      return (1 + min(MED(S, T[1:]), MED(S[1:], T)))
 
 
 def fast_MED(S, T, MED={}):
-    # TODO -  implement top-down memoization
-    pass
+  # TODO -  implement top-down memoization
+  if (S, T) in MED:
+    return MED[(S, T)]
+    
+  if (S == ""):
+    return (len(T))
+  elif (T == ""):
+    return (len(S))
+    
+  else:
+    if (S[0] == T[0]):
+      result = fast_MED(S[1:], T[1:], MED)
+    else:
+      result = 1 + min(fast_MED(S, T[1:], MED), fast_MED(S[1:], T, MED))
+  MED[(S, T)] = result
+  return result
+
 
 def fast_align_MED(S, T, MED={}):
-    # TODO - keep track of alignment
-    pass
+  if (S, T) in MED:
+    return MED[(S, T)]
 
+  if S == "":
+    return ("-" * len(T), T)
+  if T == "":
+    return (S, "-" * len(S))
+
+  if S[0] == T[0]:
+    edited_S, edited_T = fast_align_MED(S[1:], T[1:], MED)
+    result = (S[0] + edited_S, T[0] + edited_T)
+  else:
+    insert_S, insert_T = fast_align_MED(S, T[1:], MED)
+    delete_S, delete_T = fast_align_MED(S[1:], T, MED)
+
+    insert_cost = 1 + len(insert_S)
+    delete_cost = 1 + len(delete_S)
+
+    if insert_cost <= delete_cost:
+      result = ("-" + insert_S, T[0] + insert_T)
+    else:
+       result = (S[0] + delete_S, "-" + delete_T)
+  MED[(S, T)] = result
+  return result
